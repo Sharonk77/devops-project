@@ -1,0 +1,58 @@
+name: Terraform Deploy
+
+on:
+  workflow_dispatch: # currently only manually triggered
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: |
+          terraform validate || (echo "Terraform validation failed! Stopping workflow." && exit 1)
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply and Wait for Completion
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Starting Terraform apply..."
+          terraform apply -auto-approve | tee terraform_output.log
+          echo "Terraform apply completed successfully."
+        env:
+          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+
+
+      - name: Upload html to the s3 bucket
+        run: |
+          echo "Uploading file to S3..."
+          aws s3 cp index.html s3://${{ secrets.BUCKET_NAME }}/index.html
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-1"
+
