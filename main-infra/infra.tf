@@ -9,21 +9,10 @@ variable "bucket_name" {
   sensitive = true
 }
 
-variable "tf_be_bucket_name" {
-  type      = string
-  sensitive = true
-}
-
 # backend
 terraform {
   backend "s3" {}
 
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 3.0"
-    }
-  }
 }
 
 provider "aws" {
