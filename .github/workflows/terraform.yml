@@ -35,6 +35,9 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        env:
+          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
 
       - name: Terraform Apply and Wait for Completion
         if: github.ref == 'refs/heads/main'
@@ -43,7 +46,7 @@ jobs:
           terraform apply -auto-approve | tee terraform_output.log
           echo "Terraform apply completed successfully."
         env:
-          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
 
 
