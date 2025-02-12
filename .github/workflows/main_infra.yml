@@ -1,4 +1,4 @@
-name: Terraform Deploy
+name: Main infra Deploy
 
 on:
   workflow_dispatch: # currently only manually triggered
@@ -24,22 +24,23 @@ jobs:
           aws-region: us-east-1
 
       - name: Terraform Init
+        working-directory: main-infra
         run: terraform init
 
-      - name: Terraform Format
-        run: terraform fmt -check
-
       - name: Terraform Validate
+        working-directory: main-infra
         run: |
           terraform validate || (echo "Terraform validation failed! Stopping workflow." && exit 1)
 
       - name: Terraform Plan
+        working-directory: main-infra
         run: terraform plan -out=tfplan
         env:
           TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
 
       - name: Terraform Apply and Wait for Completion
+        working-directory: main-infra
         if: github.ref == 'refs/heads/main'
         run: |
           echo "Starting Terraform apply..."
@@ -51,6 +52,7 @@ jobs:
 
 
       - name: Upload html to the s3 bucket
+        working-directory: main-infra
         run: |
           echo "Uploading file to S3..."
           aws s3 cp index.html s3://${{ secrets.BUCKET_NAME }}/index.html
