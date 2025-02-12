@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "us-east-1"
-}
-
 # secrets from github
 variable "aws_account_id" {
   type      = string
@@ -11,6 +7,33 @@ variable "aws_account_id" {
 variable "bucket_name" {
   type      = string
   sensitive = true
+}
+
+variable "tf_be_bucket_name" {
+  type      = string
+  sensitive = true
+}
+
+# backend
+terraform {
+  backend "s3" {
+    bucket         = var.tf_be_bucket_name
+    key            = "/tf_state/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locking"
+    encrypt        = true
+  }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
 }
 
 # S3 bucket creation
