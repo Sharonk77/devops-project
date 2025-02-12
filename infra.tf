@@ -4,7 +4,7 @@ provider "aws" {
 
 # secrets from github
 variable "aws_account_id" {
-  type        = string
+  type      = string
   sensitive = true
 }
 
@@ -31,7 +31,7 @@ resource "aws_s3_bucket_website_configuration" "dummy_web_bucket" {
 }
 
 resource "aws_s3_bucket_public_access_block" "dummy_web_block" {
-  bucket = aws_s3_bucket.dummy_web_bucket.id
+  bucket                  = aws_s3_bucket.dummy_web_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -49,28 +49,28 @@ resource "aws_s3_bucket_policy" "website_policy" {
   bucket = aws_s3_bucket.dummy_web_bucket.id
 
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "cloudfront.amazonaws.com"
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "cloudfront.amazonaws.com"
         },
-        "Action": "s3:GetObject",
-        "Resource": "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}/*",
-        "Condition": {
-          "StringEquals": {
-            "AWS:SourceArn": "arn:aws:cloudfront::${var.aws_account_id}:distribution/${aws_cloudfront_distribution.s3_distribution.id}"
+        "Action" : "s3:GetObject",
+        "Resource" : "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}/*",
+        "Condition" : {
+          "StringEquals" : {
+            "AWS:SourceArn" : "arn:aws:cloudfront::${var.aws_account_id}:distribution/${aws_cloudfront_distribution.s3_distribution.id}"
           }
         }
       },
       {
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::${var.aws_account_id}:root"
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "arn:aws:iam::${var.aws_account_id}:root"
         },
-        "Action": "s3:*",
-        "Resource": [
+        "Action" : "s3:*",
+        "Resource" : [
           "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}",
           "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}/*"
         ]
@@ -93,17 +93,17 @@ resource "aws_cloudfront_origin_access_control" "s3_oac" {
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
-    domain_name              = aws_s3_bucket.dummy_web_bucket.bucket_regional_domain_name
-    origin_id                = "S3-dummy-web-bucket"
+    domain_name = aws_s3_bucket.dummy_web_bucket.bucket_regional_domain_name
+    origin_id   = "S3-dummy-web-bucket"
 
     origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
   }
 
   enabled = true
   default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "S3-dummy-web-bucket"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "S3-dummy-web-bucket"
     viewer_protocol_policy = "allow-all"
 
     forwarded_values {
