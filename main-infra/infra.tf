@@ -16,13 +16,7 @@ variable "tf_be_bucket_name" {
 
 # backend
 terraform {
-  backend "s3" {
-    bucket         = var.tf_be_bucket_name
-    key            = "/tf_state/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-state-locking"
-    encrypt        = true
-  }
+  backend "s3" {}
 
   required_providers {
     aws = {
