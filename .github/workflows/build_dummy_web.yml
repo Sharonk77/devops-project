@@ -1,0 +1,66 @@
+name: build and deploy dummy web
+
+on:
+  workflow_dispatch: # currently only manually triggered
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: dummy-web
+        run: npm install
+
+      - name: Run build
+        working-directory: dummy-web
+        run: npm run build
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Initialize Terraform
+        working-directory: main-infra
+        run: terraform init
+
+      - name: Get CloudFront Distribution ID
+        working-directory: main-infra
+        run: |
+          echo "Fetching CloudFront Distribution ID from Terraform..."
+          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null)
+          echo "::add-mask::$DISTRIBUTION_ID"
+          echo "DISTRIBUTION_ID=$DISTRIBUTION_ID" >> $GITHUB_ENV
+
+      - name: Upload dummy web + invalidate cache
+        working-directory: dummy-web
+        run: |
+          echo "Uploading files to S3..."
+          aws s3 cp --recursive out s3://${{ secrets.BUCKET_NAME }}/out/
+          
+          echo "Invalidating CloudFront cache..."
+          aws cloudfront create-invalidation \
+            --distribution-id $DISTRIBUTION_ID \
+            --paths "/*"
+          
+
+
+          
+              
