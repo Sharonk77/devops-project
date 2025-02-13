@@ -130,7 +130,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     cloudfront_default_certificate = true
   }
 
-  default_root_object = "out/index.html"
+  default_root_object = "index.html"
 
 }
 

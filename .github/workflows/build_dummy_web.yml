@@ -60,7 +60,7 @@ jobs:
         working-directory: dummy-web
         run: |
           echo "Uploading files to S3..."
-          aws s3 cp --recursive out s3://${{ secrets.BUCKET_NAME }}/out/
+          aws s3 cp --recursive out/ s3://${{ secrets.BUCKET_NAME }}/
           
           echo "Invalidating CloudFront cache..."
           aws cloudfront create-invalidation \
