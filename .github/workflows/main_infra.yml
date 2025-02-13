@@ -61,7 +61,7 @@ jobs:
         working-directory: main-infra
         run: |
           echo "Fetching CloudFront Distribution ID from Terraform..."
-          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id)
+          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null)
           echo "::add-mask::$DISTRIBUTION_ID"
           echo "DISTRIBUTION_ID=$DISTRIBUTION_ID" >> $GITHUB_ENV
 
