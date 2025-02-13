@@ -39,7 +39,12 @@ jobs:
 
       - name: Initialize Terraform
         working-directory: main-infra
-        run: terraform init
+        run: terraform init \
+            -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
+            -backend-config="key="confs/import-bootstrap/terraform.tfstate"" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=terraform-state-locking" \
+            -backend-config="encrypt=true"
 
       - name: Get CloudFront Distribution ID
         working-directory: main-infra
