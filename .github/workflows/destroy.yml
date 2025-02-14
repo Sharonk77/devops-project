@@ -35,5 +35,5 @@ jobs:
 
       - name: Terraform destroy
         working-directory: main-infra
-        run: terraform destroy -lock=false
+        run: terraform destroy -lock=false  -var={{ secrets.AWS_ACCOUNT_ID }}
 
