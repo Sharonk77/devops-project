@@ -1,0 +1,32 @@
+name: destroy all environment
+
+on:
+  workflow_dispatch: # currently only manually triggered
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        working-directory: main-infra
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
+            -backend-config="key="confs/import-bootstrap/terraform.tfstate"" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=terraform-state-locking" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform destroy
+        working-directory: main-infra
+        run: |
+          terraform destroy 
