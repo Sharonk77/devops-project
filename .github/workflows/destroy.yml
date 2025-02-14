@@ -32,9 +32,16 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
-      
+
+          - name: Terraform Plan
+            working-directory: main-infra
+            run: terraform plan -out=tfplan
+            env:
+              TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+              TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+
       - name: Terraform Destroy
         env:
           TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-        run: terraform destroy -lock=false
+        run: terraform destroy
 
