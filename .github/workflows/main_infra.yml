@@ -56,22 +56,3 @@ jobs:
           TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
 
-
-#      - name: Get CloudFront Distribution ID
-#        working-directory: main-infra
-#        run: |
-#          echo "Fetching CloudFront Distribution ID from Terraform..."
-#          DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null)
-#          echo "::add-mask::$DISTRIBUTION_ID"
-#          echo "DISTRIBUTION_ID=$DISTRIBUTION_ID" >> $GITHUB_ENV
-#
-#      - name: Upload html to the s3 bucket + Invalidate CloudFront cache
-#        working-directory: main-infra
-#        run: |
-#          echo "Uploading file to S3..."
-#          aws s3 cp index.html s3://${{ secrets.BUCKET_NAME }}/index.html
-#
-#          echo "Invalidating CloudFront cache..."
-#          aws cloudfront create-invalidation \
-#            --distribution-id $DISTRIBUTION_ID \
-#            --paths "/*"
