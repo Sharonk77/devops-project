@@ -1,11 +1,15 @@
-name: Build and Push dummy server Docker Image
+name: Build and Push Docker Image to GHCR
 
 on:
-  workflow_dispatch: # Only triggered manually
+  workflow_dispatch: # Manually triggered
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write  # ✅ Allows pushing to GHCR
 
     steps:
       - name: Checkout repository
@@ -18,8 +22,8 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $USERNAME --password-stdin
 
       - name: Build Docker image
-        working-directory: dummy-server  # Ensure "dummy-server/" exists
-        run: docker build -t ghcr.io/$USERNAME/dummy-node-server:latest .
+        working-directory: dummy-server  # Ensure this path is correct
+        run: docker build -t ghcr.io/$USERNAME/devops-project:latest .
 
       - name: Push Docker image to GitHub Packages
-        run: docker push ghcr.io/$USERNAME/dummy-node-server:latest
+        run: docker push ghcr.io/$USERNAME/devops-project:latest
