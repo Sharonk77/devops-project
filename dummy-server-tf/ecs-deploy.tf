@@ -134,6 +134,33 @@ resource "aws_ecs_task_definition" "dummy_server_task" {
   ])
 }
 
+resource "aws_lb" "dummy_alb" {
+  name               = "dummy-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_sg.id]
+  subnets           = [aws_subnet.public_subnet.id]
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.dummy_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.dummy_tg.arn
+  }
+}
+
+resource "aws_lb_target_group" "dummy_tg" {
+  name     = "dummy-tg"
+  port     = 3001
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.dummy-server-vpc.id
+  target_type = "ip"
+}
+
 #  Create an ECS Service (Fargate Spot for Cheaper Costs)
 resource "aws_ecs_service" "dummy-service" {
   name            = "dummy-service"
@@ -148,4 +175,11 @@ resource "aws_ecs_service" "dummy-service" {
     assign_public_ip = true
 
   }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.dummy_tg.arn
+    container_name   = "dummy-server-container"
+    container_port   = 3001
+  }
+
 }
