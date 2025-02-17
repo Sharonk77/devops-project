@@ -32,13 +32,22 @@ resource "aws_internet_gateway" "dummy-server-gw" {
   vpc_id = aws_vpc.dummy-server-vpc.id
 }
 
-resource "aws_subnet" "public_subnet" {
+resource "aws_subnet" "public_subnet_1" {
   vpc_id                  = aws_vpc.dummy-server-vpc.id
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
-  tags = { Name = "dummy-server-public-subnet" }
+  tags = { Name = "public_subnet_1" }
+}
+
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.dummy-server-vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+
+  tags = { Name = "public_subnet_2" }
 }
 
 resource "aws_route_table" "public_rt" {
@@ -52,7 +61,7 @@ resource "aws_route" "internet_access" {
 }
 
 resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public_subnet.id
+  subnet_id      = aws_subnet.public_subnet_1
   route_table_id = aws_route_table.public_rt.id
 }
 
@@ -139,7 +148,10 @@ resource "aws_lb" "dummy_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.ecs_sg.id]
-  subnets           = [aws_subnet.public_subnet.id]
+  subnets           = [
+    aws_subnet.public_subnet_1.id,
+    aws_subnet.public_subnet_2.id
+  ]
 }
 
 resource "aws_lb_listener" "http" {
@@ -170,7 +182,7 @@ resource "aws_ecs_service" "dummy-service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets = [aws_subnet.public_subnet.id]
+    subnets = [aws_subnet.public_subnet_1.id]
     security_groups = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
 
