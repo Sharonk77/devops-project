@@ -139,5 +139,8 @@ resource "aws_ecs_service" "dummy-service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = [aws_subnet.public_subnet.id]
-    security_groups  = [aws_security_group.ecs_sg.id]
+    subnets = [aws_subnet.public_subnet.id]
+    security_groups = [aws_security_group.ecs_sg.id]
+
+  }
+}
