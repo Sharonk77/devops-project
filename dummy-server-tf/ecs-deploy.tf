@@ -130,7 +130,7 @@ resource "aws_ecs_task_definition" "dummy_server_task" {
       name  = "dummy-server-container",
       image = "ghcr.io/sharonk77/devops-project:latest",
       repositoryCredentials = {
-        credentialsParameter = "arn:aws:secretsmanager:us-east-1:${var.aws_account_id}secret:${var.ghcr_token}"
+        credentialsParameter = "arn:aws:secretsmanager:us-east-1:${var.aws_account_id}:secret:${var.ghcr_token}"
       }
       essential = true,
       portMappings = [
