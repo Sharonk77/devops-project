@@ -70,19 +70,18 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id = aws_vpc.dummy-server-vpc.id
   name   = "ecs-security-group"
 
-
   ingress {
     from_port   = 3001
     to_port     = 3001
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.alb_sg.id]  # Only allow traffic from ALB
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # Allow outbound traffic
   }
 
   tags = { Name = "ecs-sg" }
@@ -143,6 +142,35 @@ resource "aws_ecs_task_definition" "dummy_server_task" {
   ])
 }
 
+resource "aws_security_group" "alb_sg" {
+  vpc_id = aws_vpc.dummy-server-vpc.id
+  name   = "alb-security-group"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTP from anywhere
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Allow HTTPS from anywhere
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]  # Allow outbound traffic
+  }
+
+  tags = { Name = "alb-sg" }
+}
+
+
 resource "aws_lb" "dummy_alb" {
   name               = "dummy-alb"
   internal           = false
@@ -183,7 +211,7 @@ resource "aws_ecs_service" "dummy-service" {
 
   network_configuration {
     subnets = [aws_subnet.public_subnet.id]
-    security_groups = [aws_security_group.ecs_sg.id]
+    security_groups = [aws_security_group.alb_sg.id]
     assign_public_ip = true
 
   }
