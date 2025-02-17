@@ -1,9 +1,7 @@
 name: Deploy ECS with Latest GHCR Image
 
 on:
-  push:
-    branches:
-      - main  # Deploy only on main branch
+  workflow_dispatch: # currently only manually triggered
 
 jobs:
   deploy:
@@ -12,6 +10,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
