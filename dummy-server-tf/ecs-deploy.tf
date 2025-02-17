@@ -116,7 +116,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# Create an ECS Task Definition (Fargate)
+
 resource "aws_ecs_task_definition" "dummy_server_task" {
   family                   = "dummy_server_task"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
@@ -129,10 +129,8 @@ resource "aws_ecs_task_definition" "dummy_server_task" {
     {
       name  = "dummy-server-container",
       image = "ghcr.io/sharonk77/devops-project:latest",
-      repositoryCredentials = {
-        credentialsParameter = "arn:aws:secretsmanager:us-east-1:${var.aws_account_id}:secret:${var.ghcr_token}"
-      }
       essential = true,
+
       portMappings = [
         {
           containerPort = 3001,
