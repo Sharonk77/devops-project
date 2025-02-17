@@ -134,7 +134,7 @@ resource "aws_ecs_task_definition" "dummy_server_task" {
       portMappings = [
         {
           containerPort = 3001,
-          hostPort      = 3001,
+          hostPort      = 0,
           protocol      = "tcp"
         }
       ]
