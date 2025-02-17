@@ -37,6 +37,6 @@ jobs:
         working-directory: dummy-server-tf
         run: terraform apply -auto-approve
 
-      - name: Force ECS to Pull Latest Image
-        run: |
-          aws ecs update-service --cluster dummy-server-cluster --service dummy-service --force-new-deployment
+#      - name: Force ECS to Pull Latest Image
+#        run: |
+#          aws ecs update-service --cluster dummy-server-cluster --service dummy-service --force-new-deployment
