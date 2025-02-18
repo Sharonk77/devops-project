@@ -70,7 +70,8 @@ export default function FloatingBubblesBackground({
                 } else {
                     setServerStatus("down")
                 }
-            } catch (_) {
+            } catch (error) {
+                console.error("Error checking server status:", error);
                 setServerStatus("down")
             }
         }
