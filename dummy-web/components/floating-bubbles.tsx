@@ -64,13 +64,13 @@ export default function FloatingBubblesBackground({
     useEffect(() => {
         const checkServerStatus = async () => {
             try {
-                const response = await fetch("http://localhost:3001/health")
+                const response = await fetch("http://demoserveralbforecs-1010299731.us-east-1.elb.amazonaws.com/health")
                 if (response.ok) {
                     setServerStatus("up")
                 } else {
                     setServerStatus("down")
                 }
-            } catch (error) {
+            } catch (_) {
                 setServerStatus("down")
             }
         }
