@@ -65,7 +65,7 @@ export default function FloatingBubblesBackground({
         const checkServerStatus = async () => {
             try {
                 const response = await fetch("http://myserver-new-alb-2077902075.us-east-1.elb.amazonaws.com/health")
-                if (response.status === 304) {
+                if (response.status === 200) {
                     setServerStatus("up")
                 } else {
                     setServerStatus("down")
