@@ -1,4 +1,4 @@
-# secrets from github
+# secrets
 variable "aws_account_id" {
   type      = string
   sensitive = true
@@ -9,7 +9,7 @@ variable "bucket_name" {
   sensitive = true
 }
 
-# backend
+# backend state
 terraform {
   backend "s3" {}
 
@@ -19,13 +19,13 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# S3 bucket creation
-resource "aws_s3_bucket" "dummy_web_bucket" {
+# S3 bucket
+resource "aws_s3_bucket" "health-check-web-bucket" {
   bucket = var.bucket_name
 }
 
-resource "aws_s3_bucket_website_configuration" "dummy_web_bucket" {
-  bucket = aws_s3_bucket.dummy_web_bucket.id
+resource "aws_s3_bucket_website_configuration" "health-check-web-bucket" {
+  bucket = aws_s3_bucket.health-check-web-bucket.id
 
   index_document {
     suffix = "index.html"
@@ -36,8 +36,8 @@ resource "aws_s3_bucket_website_configuration" "dummy_web_bucket" {
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "dummy_web_block" {
-  bucket                  = aws_s3_bucket.dummy_web_bucket.id
+resource "aws_s3_bucket_public_access_block" "health-check-web-bucket-block" {
+  bucket                  = aws_s3_bucket.health-check-web-bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -45,14 +45,14 @@ resource "aws_s3_bucket_public_access_block" "dummy_web_block" {
 }
 
 resource "aws_s3_bucket_versioning" "versioning" {
-  bucket = aws_s3_bucket.dummy_web_bucket.id
+  bucket = aws_s3_bucket.health-check-web-bucket.id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
 resource "aws_s3_bucket_policy" "website_policy" {
-  bucket = aws_s3_bucket.dummy_web_bucket.id
+  bucket = aws_s3_bucket.health-check-web-bucket.id
 
   policy = jsonencode({
     "Version" : "2012-10-17",
@@ -63,7 +63,7 @@ resource "aws_s3_bucket_policy" "website_policy" {
           "Service" : "cloudfront.amazonaws.com"
         },
         "Action" : "s3:GetObject",
-        "Resource" : "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}/*",
+        "Resource" : "arn:aws:s3:::${aws_s3_bucket.health-check-web-bucket.id}/*",
         "Condition" : {
           "StringEquals" : {
             "AWS:SourceArn" : "arn:aws:cloudfront::${var.aws_account_id}:distribution/${aws_cloudfront_distribution.s3_distribution.id}"
@@ -77,21 +77,21 @@ resource "aws_s3_bucket_policy" "website_policy" {
         },
         "Action" : "s3:*",
         "Resource" : [
-          "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}",
-          "arn:aws:s3:::${aws_s3_bucket.dummy_web_bucket.id}/*"
+          "arn:aws:s3:::${aws_s3_bucket.health-check-web-bucket.id}",
+          "arn:aws:s3:::${aws_s3_bucket.health-check-web-bucket.id}/*"
         ]
       }
 
     ]
   })
 
-  depends_on = [aws_s3_bucket_public_access_block.dummy_web_block]
+  depends_on = [aws_s3_bucket_public_access_block.health-check-web-bucket-block]
 }
 
-# CloudFront creation:
+# CloudFront
 resource "aws_cloudfront_origin_access_control" "s3_oac" {
   name                              = "s3-oac"
-  description                       = "OAC for S3 bucket access"
+  description                       = "OAC for S3 health-check web bucket access"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -99,8 +99,8 @@ resource "aws_cloudfront_origin_access_control" "s3_oac" {
 
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
-    domain_name = aws_s3_bucket.dummy_web_bucket.bucket_regional_domain_name
-    origin_id   = "S3-dummy-web-bucket"
+    domain_name = aws_s3_bucket.health-check-web-bucket.bucket_regional_domain_name
+    origin_id   = "health-check-web-bucket"
 
     origin_access_control_id = aws_cloudfront_origin_access_control.s3_oac.id
   }
@@ -109,7 +109,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD"]
     cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = "S3-dummy-web-bucket"
+    target_origin_id       = "health-check-web-bucket"
     viewer_protocol_policy = "allow-all"
 
     forwarded_values {

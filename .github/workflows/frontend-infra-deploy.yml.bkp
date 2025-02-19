@@ -1,15 +1,11 @@
-name: Deploy Health-Check Frontend Infra
+name: health-check frontend web infra creation
 
 on:
-  workflow_dispatch: # Manually triggered
+  workflow_dispatch: # currently only manually triggered
 
 jobs:
-  deploy-health-check-fe-infra:
+  health-check-fe-infra-deploy:
     runs-on: ubuntu-latest
-
-    env:
-      TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-      TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
 
     steps:
       - name: Checkout Repository
@@ -32,27 +28,30 @@ jobs:
         run: |
           terraform init \
             -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
-            -backend-config="key=confs/import-bootstrap/terraform.tfstate" \
+            -backend-config="key="confs/import-bootstrap/terraform.tfstate"" \
             -backend-config="region=us-east-1" \
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Format Check
-        working-directory: tf-health-check-frontend
-        run: terraform fmt -check -diff || (echo "Terraform files are not formatted correctly!" && exit 1)
-
       - name: Terraform Validate
         working-directory: tf-health-check-frontend
-        run: terraform validate
+        run: |
+          terraform validate || (echo "Terraform validation failed! Stopping workflow." && exit 1)
 
       - name: Terraform Plan
         working-directory: tf-health-check-frontend
         run: terraform plan -out=tfplan
+        env:
+          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
 
-      - name: Terraform Apply (Only on Main)
+      - name: Terraform Apply and Wait for Completion
         working-directory: tf-health-check-frontend
-        if: github.ref == 'refs/heads/main'
         run: |
           echo "Starting Terraform apply..."
           terraform apply -auto-approve | tee terraform_output.log
           echo "Terraform apply completed successfully."
+        env:
+          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+
