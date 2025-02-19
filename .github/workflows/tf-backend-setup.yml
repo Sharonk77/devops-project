@@ -1,0 +1,52 @@
+name: Terraform Backend Setup Deploy
+
+on:
+  workflow_dispatch: # Manually triggered
+
+jobs:
+  tf-backend-setup:
+    runs-on: ubuntu-latest
+
+    env:
+      TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+      TF_VAR_tf_be_bucket_name: ${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        working-directory: tf-state-backend
+        run: terraform init
+
+      - name: Terraform Format Check
+        working-directory: tf-state-backend
+        run: |
+          terraform fmt -check -diff || (echo "Terraform files are not formatted correctly!" && exit 1)
+
+      - name: Terraform Validate
+        working-directory: tf-state-backend
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: tf-state-backend
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: tf-state-backend
+        run: |
+          echo "Applying Terraform changes..."
+          terraform apply -auto-approve | tee terraform_output.log
+          echo "Terraform apply completed successfully."

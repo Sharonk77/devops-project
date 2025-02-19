@@ -44,7 +44,7 @@ function FloatingBubbles() {
     return (
         <div className="absolute inset-0 pointer-events-none">
             <svg className="w-full h-full">
-                <title>Floating Bubbles</title>
+                <title>Sharon's Health-Check</title>
                 {bubbles.map((bubble) => (
                     <Bubble key={bubble.id} {...bubble} />
                 ))}
@@ -64,7 +64,7 @@ export default function FloatingBubblesBackground({
     useEffect(() => {
         const checkServerStatus = async () => {
             try {
-                const response = await fetch("http://myserver-new-alb-2077902075.us-east-1.elb.amazonaws.com/health")
+                const response = await fetch("http://127.0.0.1/health")
                 if (response.ok) {
                     setServerStatus("up")
                 } else {
@@ -126,28 +126,6 @@ export default function FloatingBubblesBackground({
                                 "Server is Down ❌"}
                     </p>
 
-                    <div
-                        className="inline-block group relative bg-gradient-to-b from-blue-400/30 to-purple-400/30
-                       dark:from-blue-600/30 dark:to-purple-600/30 p-px rounded-2xl backdrop-blur-lg
-                       overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 mt-4"
-                    >
-                        <Button
-                            variant="ghost"
-                            className="rounded-[1.15rem] px-8 py-6 text-lg font-semibold backdrop-blur-md
-                         bg-white/80 hover:bg-white/90 dark:bg-black/80 dark:hover:bg-black/90
-                         text-blue-600 dark:text-blue-300 transition-all duration-300
-                         group-hover:-translate-y-0.5 border border-blue-200/50 dark:border-blue-700/50
-                         hover:shadow-md dark:hover:shadow-blue-900/30"
-                        >
-                            <span className="opacity-90 group-hover:opacity-100 transition-opacity">Explore the Bubbles</span>
-                            <span
-                                className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5
-                           transition-all duration-300"
-                            >
-                →
-              </span>
-                        </Button>
-                    </div>
                 </motion.div>
             </div>
         </div>

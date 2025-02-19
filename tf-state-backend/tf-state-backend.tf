@@ -8,7 +8,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# S3 bucket creation
+
 resource "aws_s3_bucket" "terraform_state" {
   bucket        = var.tf_be_bucket_name
   force_destroy = true
@@ -30,7 +30,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_c
   }
 }
 
-# dynamoDB creation
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = "terraform-state-locking"
   billing_mode = "PAY_PER_REQUEST"

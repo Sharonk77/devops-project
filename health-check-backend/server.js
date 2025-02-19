@@ -7,7 +7,9 @@ app.use(cors()); // Enable CORS
 
 app.get("/health", (req, res) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.status(200).send("OK");
+    setTimeout(() => {
+        res.status(200).send("OK");
+    }, 3000)
 });
 
 app.listen(PORT, () => {

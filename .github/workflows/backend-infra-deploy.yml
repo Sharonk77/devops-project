@@ -1,0 +1,67 @@
+name: backend infra deploy - deploy ECS
+
+on:
+  workflow_dispatch: # currently only manually triggered
+
+jobs:
+  backend-infra-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+      TF_VAR_backend_bucket_name: ${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}
+      TF_VAR_image: "ghcr.io/sharonk77/devops-project:latest"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set Terraform Backend Config
+        working-directory: tf-health-check-backend
+        run: |
+          cat <<EOF > backend-config.hcl
+          bucket = "${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}"
+          key = "confs/import-bootstrap/terraform.tfstate"
+          region = "us-east-1"
+          dynamodb_table = "terraform-state-locking"
+          encrypt = true
+          EOF
+
+#      - name:  Terraform init
+#        working-directory: tf-health-check-backend
+#        run: |
+#          terraform init \
+#            -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
+#            -backend-config="key="confs/import-bootstrap/terraform.tfstate"" \
+#            -backend-config="region=us-east-1" \
+#            -backend-config="dynamodb_table=terraform-state-locking" \
+#            -backend-config="encrypt=true"
+#        env:
+#          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+#          TF_VAR_image: ghcr.io/sharonk77/devops-project:latest
+
+      - name: Terraform Init
+        working-directory: tf-health-check-backend
+        run: terraform init -backend-config=backend-config.hcl -reconfigure
+
+
+      - name: Apply Terraform Configuration
+        working-directory: tf-health-check-backend
+        run: terraform apply -auto-approve -lock=false
+#        env:
+#          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+#          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+#          TF_VAR_image: ghcr.io/sharonk77/devops-project:latest
+

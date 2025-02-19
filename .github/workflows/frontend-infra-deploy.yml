@@ -1,15 +1,15 @@
-name: Deploy ECS with Latest GHCR Image
+name: health-check frontend web infra creation
 
 on:
   workflow_dispatch: # currently only manually triggered
 
 jobs:
-  deploy:
+  health-check-fe-infra-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -23,8 +23,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name:  Terraform init
-        working-directory: dummy-server-tf
+      - name: Terraform Init
+        working-directory: tf-health-check-frontend
         run: |
           terraform init \
             -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
@@ -32,18 +32,27 @@ jobs:
             -backend-config="region=us-east-1" \
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
-        env:
-          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-          TF_VAR_ghcr_token: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Apply Terraform Configuration
-        working-directory: dummy-server-tf
-        run: terraform apply -auto-approve -lock=false
+      - name: Terraform Validate
+        working-directory: tf-health-check-frontend
+        run: |
+          terraform validate || (echo "Terraform validation failed! Stopping workflow." && exit 1)
+
+      - name: Terraform Plan
+        working-directory: tf-health-check-frontend
+        run: terraform plan -out=tfplan
         env:
           TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
-          TF_VAR_ghcr_token: ${{ secrets.GHCR_TOKEN }}
 
-#      - name: Force ECS to Pull Latest Image
-#        run: |
-#          aws ecs update-service --cluster dummy-server-cluster --service dummy-service --force-new-deployment
+      - name: Terraform Apply and Wait for Completion
+        working-directory: tf-health-check-frontend
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Starting Terraform apply..."
+          terraform apply -auto-approve | tee terraform_output.log
+          echo "Terraform apply completed successfully."
+        env:
+          TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+

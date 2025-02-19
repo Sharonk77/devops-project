@@ -1,0 +1,205 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+terraform {
+  backend "s3" {}
+}
+
+# variables
+variable "image" {
+  type      = string
+}
+
+# data
+data "aws_vpc" "default_vpc" {
+  default = true
+}
+
+data "aws_subnets" "default_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default_vpc.id]
+  }
+}
+
+# ecs cluster
+resource "aws_ecs_cluster" "ecs_cluster" {
+  name = "my-ecs-cluster"
+}
+
+# security group for load balancer
+resource "aws_security_group" "lb_sg" {
+  name        = "lb-security-group"
+  description = "Allow inbound HTTP and HTTPS traffic"
+  vpc_id      = data.aws_vpc.default_vpc.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# security group for ecs
+resource "aws_security_group" "ecs_sg" {
+  name        = "ecs-security-group"
+  description = "Allow inbound traffic from ALB"
+  vpc_id      = data.aws_vpc.default_vpc.id
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lb_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# task execution role
+resource "aws_iam_role" "my_ecs_task_execution_role" {
+  name = "ecsTaskExecutionRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "ecs-tasks.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
+  role       = aws_iam_role.my_ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# cloudwatch - allow logging
+resource "aws_cloudwatch_log_group" "my_ecs_logs" {
+  name = "/ecs/logs"
+  retention_in_days = 7
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_logs_policy" {
+  role       = aws_iam_role.my_ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
+# task definition
+resource "aws_ecs_task_definition" "my_task" {
+  family                   = "my-task"
+  requires_compatibilities = ["FARGATE"]
+  execution_role_arn       = aws_iam_role.my_ecs_task_execution_role.arn
+  network_mode             = "awsvpc"
+  memory                   = "512"
+  cpu                      = "256"
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
+
+  container_definitions = jsonencode([
+    {
+      name      = "my-container"
+      image     = "ghcr.io/sharonk77/devops-project:latest"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.my_ecs_logs.name
+          awslogs-region        = "us-east-1"
+          awslogs-stream-prefix = "my-ecs"
+        }
+      }
+
+    }
+  ])
+
+}
+
+# load balancer
+resource "aws_lb" "my_lb" {
+  name               = "my-lb-tf"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb_sg]
+  subnets            = data.aws_subnets.default_subnets.ids
+
+  enable_deletion_protection = true
+}
+
+# target group
+resource "aws_lb_target_group" "ecs_tg" {
+  name        = "ecs-target-group"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = data.aws_vpc.default_vpc.id
+  target_type = "ip"
+
+  health_check {
+    path                = "/health"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+# listener
+resource "aws_lb_listener" "ecs_listener" {
+  load_balancer_arn = aws_lb.my_lb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ecs_tg.arn
+  }
+}
+
+# ecs service
+resource "aws_ecs_service" "my_service" {
+  name            = "my-service"
+  cluster         = aws_ecs_cluster.ecs_cluster.id
+  task_definition = aws_ecs_task_definition.my_task.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+  iam_role        = aws_iam_role.my_ecs_task_execution_role.arn
+
+  load_balancer {
+    target_group_arn = ecs_tg
+    container_name   = "my-container"
+    container_port   = 80
+  }
+
+  placement_constraints {
+    type       = "memberOf"
+    expression = "attribute:ecs.availability-zone in [us-west-2a, us-west-2b]"
+  }
+}
+
+
+
