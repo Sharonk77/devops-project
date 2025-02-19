@@ -145,7 +145,7 @@ resource "aws_lb" "ecs_lb" {
   name               = "health-check-backend-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb_sg]
+  security_groups    = aws_security_group.lb_sg.id
   subnets            = data.aws_subnets.default_subnets.ids
 
   enable_deletion_protection = true
