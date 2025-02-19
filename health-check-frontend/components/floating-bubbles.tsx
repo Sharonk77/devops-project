@@ -54,7 +54,7 @@ function FloatingBubbles() {
 }
 
 export default function FloatingBubblesBackground({
-                                                      title = "Floating Bubbles",
+                                                      title = "Sharon's Web Health-Check",
                                                   }: {
     title?: string
 }) {
@@ -64,7 +64,7 @@ export default function FloatingBubblesBackground({
     useEffect(() => {
         const checkServerStatus = async () => {
             try {
-                const response = await fetch("http://127.0.0.1/health")
+                const response = await fetch(process.env.NEXT_PUBLIC_API_URL as string)
                 if (response.ok) {
                     setServerStatus("up")
                 } else {
@@ -122,7 +122,7 @@ export default function FloatingBubblesBackground({
                     {/* Server Status */}
                     <p className="text-xl font-semibold mt-2">
                         {serverStatus === "loading" ? "Checking server status... ⏳" :
-                            serverStatus === "up" ? "Server is Running ✅" :
+                            serverStatus === "up" ? "Server is running ✅" :
                                 "Server is Down ❌"}
                     </p>
 
