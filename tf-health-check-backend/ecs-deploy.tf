@@ -153,7 +153,7 @@ resource "aws_lb" "ecs_lb" {
 
 # target group
 resource "aws_lb_target_group" "ecs_tg" {
-  name        = "ecs-target-group"
+  name        = "ecs-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.default_vpc.id
