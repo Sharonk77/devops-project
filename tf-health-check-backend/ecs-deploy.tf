@@ -153,7 +153,7 @@ resource "aws_lb" "ecs_lb" {
 
 # target group
 resource "aws_lb_target_group" "ecs_tg" {
-  name        = "health-check-backend-ecs-target-group"
+  name        = "ecs-target-group"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.default_vpc.id
@@ -182,7 +182,7 @@ resource "aws_lb_listener" "ecs_listener" {
 
 # ecs service
 resource "aws_ecs_service" "service" {
-  name            = "health-check-backend-service"
+  name            = "health-check-be-service"
   cluster         = aws_ecs_cluster.ecs_cluster.id
   task_definition = aws_ecs_task_definition.health-check-backend-task.arn
   desired_count   = 1
