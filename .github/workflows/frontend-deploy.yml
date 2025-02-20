@@ -49,18 +49,18 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
 
-      - name: Get Load Balancer API URL from Terraform
-        working-directory: tf-health-check-frontend
+      - name: Get Load Balancer URL from Terraform
+        working-directory: tf-health-check-backend
         run: |
-          echo "Fetching Load Balancer API URL from Terraform..."
-          LB_API=$(terraform output -raw lb_url 2>/dev/null)
-          echo "LB_API=$LB_API" >> $GITHUB_ENV
-          echo "Using Load Balancer URL: $LB_API"
+          echo "Fetching Load Balancer URL from Terraform..."
+          LB_URL=$(terraform output -raw load_balancer_url 2>/dev/null)
+          echo "LB_URL=$LB_URL" >> $GITHUB_ENV
+          echo "Using Load Balancer URL: $LB_URL"
 
-      - name: Create `.env` File with API URL
+      - name: Create `.env` File with Load Balancer URL
         working-directory: health-check-frontend
         run: |
-          echo "NEXT_PUBLIC_API_URL=${{ env.LB_API }}" > .env.local
+          echo "NEXT_PUBLIC_API_URL=${{ env.LB_URL }}" > .env.local
           cat .env.local  # Debugging step to verify the variable
 
       - name: Run Build
