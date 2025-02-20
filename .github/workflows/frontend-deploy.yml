@@ -50,6 +50,10 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
 
+      - name: Debug Terraform Outputs
+        working-directory: tf-health-check-frontend
+        run: terraform output
+
       - name: Get Load Balancer URL from Terraform
         working-directory: tf-health-check-frontend
         run: |
