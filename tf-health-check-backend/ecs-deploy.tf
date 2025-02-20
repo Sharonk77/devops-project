@@ -90,14 +90,14 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 }
 
 # cloudwatch - allow logging
-resource "aws_cloudwatch_log_group" "ecs_logs" {
-  name = "/ecs/health-check-backend-logs"
-  retention_in_days = 7
-}
-
 resource "aws_iam_role_policy_attachment" "ecs_logs_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+}
+
+resource "aws_cloudwatch_log_group" "ecs_logs" {
+  name = "/ecs/health-check-backend-logs"
+  retention_in_days = 7
 }
 
 # task definition
@@ -122,7 +122,6 @@ resource "aws_ecs_task_definition" "health-check-backend-task" {
       portMappings = [
         {
           containerPort = 80
-          hostPort      = 80
         }
       ]
 
@@ -141,6 +140,26 @@ resource "aws_ecs_task_definition" "health-check-backend-task" {
 }
 
 # load balancer
+resource "aws_iam_role" "ecs_service_role" {
+  name = "ecs-service-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_service_elb_access" {
+  role       = aws_iam_role.ecs_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSServiceRolePolicy"
+}
+
 resource "aws_lb" "ecs_lb" {
   name               = "health-check-backend-lb"
   internal           = false
@@ -187,7 +206,6 @@ resource "aws_ecs_service" "service" {
   task_definition = aws_ecs_task_definition.health-check-backend-task.arn
   desired_count   = 1
   launch_type     = "FARGATE"
-  iam_role        = aws_iam_role.ecs_task_execution_role.arn
 
   load_balancer {
     target_group_arn = aws_lb_target_group.ecs_tg.arn
