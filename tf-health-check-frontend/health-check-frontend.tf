@@ -9,10 +9,27 @@ variable "bucket_name" {
   sensitive = true
 }
 
+variable "be_bucket_name" {
+  type      = string
+  sensitive = true
+}
+
 # backend state
 terraform {
   backend "s3" {}
 
+}
+
+# remote state
+data "terraform_remote_state" "backend_state" {
+  backend = "s3"
+
+  config = {
+    bucket         = var.be_bucket_name
+    key            = "backend/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locking"
+  }
 }
 
 provider "aws" {
