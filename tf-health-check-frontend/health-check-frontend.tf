@@ -22,6 +22,11 @@ provider "aws" {
 # S3 bucket
 resource "aws_s3_bucket" "health-check-web-bucket" {
   bucket = var.bucket_name
+
+  lifecycle {
+    prevent_destroy = false
+  }
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_website_configuration" "health-check-web-bucket" {
