@@ -49,9 +49,9 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
 
-      - name: Terraform Init
-        working-directory: tf-health-check-backend
-        run: terraform init -backend-config=backend-config.hcl -reconfigure
+#      - name: Terraform Init
+#        working-directory: tf-health-check-backend
+#        run: terraform init -backend-config=backend-config.hcl -reconfigure
 
       - name: Apply Terraform Configuration
         working-directory: tf-health-check-backend
