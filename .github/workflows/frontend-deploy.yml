@@ -56,7 +56,7 @@ jobs:
           terraform refresh 
 
       - name: Debug Terraform Outputs
-        working-directory: tf-health-check-backend
+        working-directory: tf-health-check-frontend
         run: terraform output
 
       - name: Get Load Balancer URL from Terraform
