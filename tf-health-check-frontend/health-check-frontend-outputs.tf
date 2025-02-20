@@ -9,3 +9,7 @@ output "cloudfront_oac_id" {
   value       = aws_cloudfront_origin_access_control.s3_oac.id
   sensitive   = true
 }
+
+output "load_balancer_url" {
+  value = data.terraform_remote_state.backend_state.outputs.load_balancer_url
+}

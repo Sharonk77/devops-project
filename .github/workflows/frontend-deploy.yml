@@ -11,6 +11,7 @@ jobs:
       AWS_REGION: us-east-1
       TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+      TF_VAR_be_bucket_name: secrets.TERRAFORM_BACKEND_BUCKET_NAME }}"
 
     steps:
       - name: Checkout Repository
@@ -48,10 +49,6 @@ jobs:
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
-
-      - name: Debug Terraform Outputs
-        working-directory: tf-health-check-backend
-        run: terraform output
 
       - name: Get Load Balancer URL from Terraform
         working-directory: tf-health-check-backend
