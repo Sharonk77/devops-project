@@ -213,11 +213,6 @@ resource "aws_ecs_service" "service" {
     container_name   = "health-check-backend"
     container_port   = 80
   }
-
-  placement_constraints {
-    type       = "memberOf"
-    expression = "attribute:ecs.availability-zone in [us-west-2a, us-west-2b]"
-  }
 }
 
 
