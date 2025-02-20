@@ -52,8 +52,7 @@ jobs:
 
       - name: Terraform refresh
         working-directory: tf-health-check-frontend
-        run: |
-          terraform refresh 
+        run: terraform refresh
 
       - name: Debug Terraform Outputs
         working-directory: tf-health-check-frontend

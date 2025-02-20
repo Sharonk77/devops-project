@@ -11,13 +11,11 @@ variable "bucket_name" {
 
 variable "be_bucket_name" {
   type      = string
-  sensitive = true
 }
 
 # backend state
 terraform {
   backend "s3" {}
-
 }
 
 # remote state
