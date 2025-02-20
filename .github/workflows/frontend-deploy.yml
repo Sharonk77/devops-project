@@ -41,7 +41,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terraform Init
-        working-directory: tf-health-check-frontend
+        working-directory: tf-health-check-backend
         run: |
           terraform init \
             -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
@@ -50,8 +50,16 @@ jobs:
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
 
+      - name: Terraform Apply
+        working-directory: tf-health-check-backend
+        run: |
+          echo "Applying Terraform changes..."
+          terraform apply -auto-approve | tee terraform_output.log
+          echo "Terraform apply completed successfully."
+
+
       - name: Debug Terraform Outputs
-        working-directory: tf-health-check-frontend
+        working-directory: tf-health-check-backend
         run: terraform output
 
       - name: Get Load Balancer URL from Terraform
