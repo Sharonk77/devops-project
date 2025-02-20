@@ -116,7 +116,7 @@ resource "aws_ecs_task_definition" "health-check-backend-task" {
 
   container_definitions = jsonencode([
     {
-      name      = "my-container"
+      name      = "health-check-backend"
       image     = var.image
       essential = true
       portMappings = [
@@ -153,11 +153,6 @@ resource "aws_iam_role" "ecs_service_role" {
       Action = "sts:AssumeRole"
     }]
   })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_service_elb_access" {
-  role       = aws_iam_role.ecs_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSServiceRolePolicy"
 }
 
 resource "aws_lb" "ecs_lb" {
