@@ -43,12 +43,26 @@ jobs:
       - name: Terraform Init
         working-directory: tf-health-check-frontend
         run: |
-          terraform init \
+          terraform init -reconfigure \
             -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
             -backend-config="key=frontend/terraform.tfstate" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=terraform-state-locking" \
             -backend-config="encrypt=true"
+
+      - name: Terraform refresh
+        working-directory: tf-health-check-frontend
+        run: |
+          terraform refresh \
+            -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
+            -backend-config="key=frontend/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=terraform-state-locking" \
+            -backend-config="encrypt=true"
+
+      - name: Debug Terraform Outputs
+        working-directory: tf-health-check-backend
+        run: terraform output
 
       - name: Get Load Balancer URL from Terraform
         working-directory: tf-health-check-frontend
