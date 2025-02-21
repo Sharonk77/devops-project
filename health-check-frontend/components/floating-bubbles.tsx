@@ -43,7 +43,7 @@ function FloatingBubbles() {
     return (
         <div className="absolute inset-0 pointer-events-none">
             <svg className="w-full h-full">
-                <title>Sharon's Health-Check</title>
+                <title>"Sharon&apos;s Web Health-Check"</title>
                 {bubbles.map((bubble) => (
                     <Bubble key={bubble.id} {...bubble} />
                 ))}
