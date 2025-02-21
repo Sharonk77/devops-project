@@ -69,7 +69,7 @@ jobs:
       - name: Create `.env` File with Load Balancer URL
         working-directory: health-check-frontend
         run: |
-          echo "NEXT_PUBLIC_API_URL=${{ env.LB_URL }}/health" > .env.local
+          echo "NEXT_PUBLIC_API_URL=http://${{ env.LB_URL }}/health" > .env.local
           cat .env.local  # Debugging step to verify the variable
 
       - name: Run Build
