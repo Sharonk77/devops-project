@@ -43,7 +43,7 @@ function FloatingBubbles() {
     return (
         <div className="absolute inset-0 pointer-events-none">
             <svg className="w-full h-full">
-                <title>"Sharon&apos;s Web Health-Check"</title>
+                <title>Sharons Health-Check</title>
                 {bubbles.map((bubble) => (
                     <Bubble key={bubble.id} {...bubble} />
                 ))}
@@ -53,7 +53,7 @@ function FloatingBubbles() {
 }
 
 export default function FloatingBubblesBackground({
-                                                      title = "Sharon&apos;s Web Health-Check",
+                                                      title = "Sharons Web Health-Check",
                                                   }: {
     title?: string
 }) {
