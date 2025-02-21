@@ -63,7 +63,7 @@ export default function FloatingBubblesBackground({
     useEffect(() => {
         const checkServerStatus = async () => {
             try {
-                const response = await fetch(process.env.NEXT_PUBLIC_API_URL as string)
+                const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/health')
                 if (response.ok) {
                     setServerStatus("up")
                 } else {
