@@ -23,7 +23,7 @@ data "terraform_remote_state" "backend_state" {
   backend = "s3"
 
   config = {
-    bucket         = var.be_bucket_name
+    bucket         = terraform-tf-state-g5rx8pf3asnevz4h2djtmc
     key            = "backend/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "terraform-state-locking"
