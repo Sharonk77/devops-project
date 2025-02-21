@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
 
 function Bubble({ x, y, size, color }: { x: number; y: number; size: number; color: string }) {
     return (
@@ -54,7 +53,7 @@ function FloatingBubbles() {
 }
 
 export default function FloatingBubblesBackground({
-                                                      title = "Sharon's Web Health-Check",
+                                                      title = "Sharon&apos;s Web Health-Check",
                                                   }: {
     title?: string
 }) {
