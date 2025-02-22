@@ -10,7 +10,7 @@ jobs:
     env:
       TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       TF_VAR_backend_bucket_name: ${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}
-      TF_VAR_image: "ghcr.io/sharonk77/devops-project:latest"
+      TF_VAR_image: "ghcr.io/sharonk77/devops-project@sha256:373f5d0bb1d6b7cdf33900dc3d707fc780852e80b9f354c439a8eabfb8ea375d"
 
     steps:
       - name: Checkout repository
@@ -41,7 +41,3 @@ jobs:
       - name: Apply Terraform Configuration
         working-directory: tf-health-check-backend
         run: terraform apply -auto-approve -lock=false
-
-      - name: Debug Terraform Outputs
-        working-directory: tf-health-check-backend
-        run: terraform output
