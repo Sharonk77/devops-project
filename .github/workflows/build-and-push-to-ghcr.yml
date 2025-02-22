@@ -1,4 +1,4 @@
-name: backend deploy - build and push health-check-backend docker image to GHCR
+name: build and push health-check-backend docker image to GHCR
 
 on:
   workflow_dispatch: # Manually triggered
@@ -24,7 +24,11 @@ jobs:
 
       - name: Build Docker image
         working-directory: health-check-backend
-        run: docker build -t ghcr.io/sharonk77/devops-project:latest .
+        run: |
+          docker build -t ghcr.io/sharonk77/devops-project:latest -t ghcr.io/sharonk77/devops-project:${{ github.sha }} .
 
-      - name: Push Docker image to GitHub Packages
-        run: docker push ghcr.io/sharonk77/devops-project:latest
+      - name: Push latest and SHA Docker image to GitHub Packages
+        run: |
+          docker push ghcr.io/sharonk77/devops-project:latest
+          docker push ghcr.io/sharonk77/devops-project:${{ github.sha }}
+
