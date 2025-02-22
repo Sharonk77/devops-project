@@ -25,9 +25,10 @@ jobs:
       - name: Build Docker image
         working-directory: health-check-backend
         run: |
-          docker build -t ghcr.io/sharonk77/devops-project:${{ github.sha }} .
+          docker build -t ghcr.io/sharonk77/devops-project:latest -t ghcr.io/sharonk77/devops-project:${{ github.sha }} .
 
       - name: Push latest and SHA Docker image to GitHub Packages
         run: |
+          docker push ghcr.io/sharonk77/devops-project:latest
           docker push ghcr.io/sharonk77/devops-project:${{ github.sha }}
 
