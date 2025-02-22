@@ -137,6 +137,10 @@ resource "aws_ecs_task_definition" "health-check-backend-task" {
     }
   ])
 
+  lifecycle {
+    ignore_changes = [container_definitions]
+  }
+
 }
 
 # load balancer
@@ -162,7 +166,7 @@ resource "aws_lb" "ecs_lb" {
   security_groups    = [aws_security_group.lb_sg.id]
   subnets            = data.aws_subnets.default_subnets.ids
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 }
 
 # target group
