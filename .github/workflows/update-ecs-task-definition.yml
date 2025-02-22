@@ -1,0 +1,62 @@
+name: update task definition
+
+on:
+  workflow_dispatch: # Manually triggered
+
+jobs:
+  backend-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform init
+        working-directory: tf-health-check-backend
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}" \
+            -backend-config="key="backend/terraform.tfstate"" \
+            -backend-config="region=us-east-1" \
+            -backend-config="dynamodb_table=terraform-state-locking" \
+            -backend-config="encrypt=true"
+
+      - name: Get Task Definition Name
+        run: | 
+             echo "TASK_NAME=$(terraform output -raw task_name)" >> $GITHUB_ENV
+             echo "CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
+             echo "SERVICE_NAME=$(terraform output -raw service_name)" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.task_name }} \
+          --query taskDefinition > task-definition.json
+
+      - name: Render Amazon ECS task definition
+        id: render-backend-container
+        uses: aws-actions/amazon-ecs-render-task-definition@v1.6.2
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.ecs_container_name }}
+          image: "ghcr.io/sharonk77/devops-project:d237804aa42cfeb6e2e25173bd97bd4b304878e6"
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2.3.0
+        with:
+          task-definition: ${{ steps.render-backend-container.outputs.task-definition }}
+          service: ${{ env.ecs_service }}
+          cluster: ${{ env.ecs_cluster }}
+          wait-for-service-stability: true
+
