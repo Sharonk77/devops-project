@@ -52,13 +52,18 @@ jobs:
           aws ecs describe-task-definition --task-definition ${{ env.task_name }} \
           --query taskDefinition > task-definition.json
 
+
+      - name: Clean Task Definition
+        run: |
+          jq 'del(.taskDefinitionArn, .compatibilities, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy)' task-definition.json > cleaned-task-definition.json
+
       - name: Render Amazon ECS task definition
         id: render-backend-container
         uses: aws-actions/amazon-ecs-render-task-definition@v1.6.2
         with:
-          task-definition: task-definition.json
+          task-definition: cleaned-task-definition.json
           container-name: ${{ env.container_name }}
-          image: "ghcr.io/sharonk77/devops-project:d237804aa42cfeb6e2e25173bd97bd4b304878e6"
+          image: "ghcr.io/sharonk77/devops-project:latest"
 
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2.3.0
