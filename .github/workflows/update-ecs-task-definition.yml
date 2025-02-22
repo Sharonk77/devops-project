@@ -42,9 +42,10 @@ jobs:
       - name: Get Task Definition Name
         working-directory: tf-health-check-backend
         run: | 
-             echo "TASK_NAME=$(terraform output -raw task_name)" >> $GITHUB_ENV
-             echo "CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
-             echo "SERVICE_NAME=$(terraform output -raw service_name)" >> $GITHUB_ENV
+             echo "task_name=$(terraform output -raw task_name)" >> $GITHUB_ENV
+             echo "cluster_name=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
+             echo "service_name=$(terraform output -raw service_name)" >> $GITHUB_ENV
+             echo "container_name=$(terraform output -raw container_name)" >> $GITHUB_ENV
 
       - name: Download task definition
         run: |
