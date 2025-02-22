@@ -29,6 +29,6 @@ jobs:
 
       - name: Push latest and SHA Docker image to GitHub Packages
         run: |
-          docker push ghcr.io/sharonk77/devops-project:latest
+#          docker push ghcr.io/sharonk77/devops-project:latest
           docker push ghcr.io/sharonk77/devops-project:${{ github.sha }}
 
