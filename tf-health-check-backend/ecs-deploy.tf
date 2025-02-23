@@ -23,6 +23,10 @@ data "aws_subnets" "default_subnets" {
   }
 }
 
+data "aws_ecs_task_definition" "existing" {
+  task_definition = "health-check-backend"
+}
+
 # ecs cluster
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "health-check-backend-cluster"
@@ -100,8 +104,14 @@ resource "aws_cloudwatch_log_group" "ecs_logs" {
   retention_in_days = 7
 }
 
+locals {
+  task_definition_exists = can(data.aws_ecs_task_definition.existing.arn)
+}
+
+
 # task definition
 resource "aws_ecs_task_definition" "health-check-backend-task" {
+  count                    = local.task_definition_exists ? 0 : 1
   family                   = "health-check-backend"
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
@@ -201,8 +211,8 @@ resource "aws_lb_listener" "ecs_listener" {
 # ecs service
 resource "aws_ecs_service" "service" {
   name            = "health-check-be-service"
+  task_definition = local.task_definition_exists ? data.aws_ecs_task_definition.existing.arn : aws_ecs_task_definition.health-check-backend-task[0].arn
   cluster         = aws_ecs_cluster.ecs_cluster.id
-  task_definition = aws_ecs_task_definition.health-check-backend-task.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
@@ -216,6 +226,10 @@ resource "aws_ecs_service" "service" {
     target_group_arn = aws_lb_target_group.ecs_tg.arn
     container_name   = "health-check-backend"
     container_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
   }
 }
 
