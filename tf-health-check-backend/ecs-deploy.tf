@@ -23,10 +23,6 @@ data "aws_subnets" "default_subnets" {
   }
 }
 
-data "aws_ecs_task_definition" "existing" {
-  task_definition = "health-check-backend"
-}
-
 # ecs cluster
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "health-check-backend-cluster"
