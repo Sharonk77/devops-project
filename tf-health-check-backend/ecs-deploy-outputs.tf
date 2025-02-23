@@ -16,7 +16,7 @@ output "cluster_name" {
 }
 
 output "container_name" {
-  value = jsondecode(aws_ecs_task_definition.health-check-backend-task.container_definitions)[0].name
+  value = jsondecode(aws_ecs_task_definition.health-check-backend-task[0].container_definitions)[0].name
 }
 
 
