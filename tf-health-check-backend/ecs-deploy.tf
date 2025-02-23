@@ -111,7 +111,6 @@ locals {
 
 # task definition
 resource "aws_ecs_task_definition" "health-check-backend-task" {
-  count                    = local.task_definition_exists ? 0 : 1
   family                   = "health-check-backend"
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
@@ -208,10 +207,14 @@ resource "aws_lb_listener" "ecs_listener" {
   }
 }
 
+data "aws_ecs_task_definition" "existing" {
+  task_definition = aws_ecs_task_definition.health-check-backend-task.family
+}
+
 # ecs service
 resource "aws_ecs_service" "service" {
   name            = "health-check-be-service"
-  task_definition = local.task_definition_exists ? data.aws_ecs_task_definition.existing.arn : aws_ecs_task_definition.health-check-backend-task[0].arn
+  task_definition = data.aws_ecs_task_definition.existing.arn
   cluster         = aws_ecs_cluster.ecs_cluster.id
   desired_count   = 1
   launch_type     = "FARGATE"
