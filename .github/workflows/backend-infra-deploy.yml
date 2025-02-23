@@ -10,7 +10,7 @@ jobs:
     env:
       TF_VAR_aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       TF_VAR_backend_bucket_name: ${{ secrets.TERRAFORM_BACKEND_BUCKET_NAME }}
-      TF_VAR_image: "ghcr.io/sharonk77/devops-project:latest"
+      TF_VAR_image: "ghcr.io/sharonk77/devops-project:something"
 
     steps:
       - name: Checkout repository
