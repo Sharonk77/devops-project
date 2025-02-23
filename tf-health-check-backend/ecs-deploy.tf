@@ -9,6 +9,7 @@ terraform {
 # variables
 variable "image" {
   type      = string
+  default   = "ghcr.io/sharonk77/devops-project:latest"
 }
 
 # data
